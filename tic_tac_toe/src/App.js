@@ -5,32 +5,22 @@ import Log from "./components/Log";
 import { WINNING_COMBINATIONS } from "./winning-combinations.js";
 import GameOver from "./components/GameOver.js";
 
-const initialGameBoard = [
+const PLAYERS = {
+    'X': 'Player 1',
+    'O': 'Player 2'
+}
+
+const INITIAL_GAME_BOARD = [
   [null, null, null],
   [null, null, null],
   [null, null, null]
 ];
 
-// Helper function to remove repeated code
-function deriveActivePlayer(gameTurns) {
-  // Derive the current active player from the gameTurns state
-  let currentPlayer = 'X';
-
-  if(gameTurns.length > 0 && gameTurns[0].player === 'X') {
-    currentPlayer = 'O';
-  }
-  return currentPlayer;
-}
-
-function App() {
-  const [ gameTurns, setGameTurns ] = useState([]);
-  // THis state is unnecessary - can derive from game turns
-  //const [ activePlayer, setActivePlayer ] = useState('X');
-
-  const activePlayer = deriveActivePlayer(gameTurns);
-
+function deriveGameBoard(gameTurns) {
   // Initialize as the empty game board
-  let gameBoard = initialGameBoard;
+  // Need to do a deep copy
+  // Otherwise any changes to gameBoard will actually change the memory behind initialGameboard as well
+  let gameBoard = [...INITIAL_GAME_BOARD.map(array => [...array])];
 
   // Add all current turns in the game to the game board
   // by doing this, we are deriving state from gameTurns state managed in the App component ancestor
@@ -43,6 +33,21 @@ function App() {
       gameBoard[row][col] = player;
   }
 
+  return gameBoard;
+}
+
+// Helper function to remove repeated code
+function deriveActivePlayer(gameTurns) {
+  // Derive the current active player from the gameTurns state
+  let currentPlayer = 'X';
+
+  if(gameTurns.length > 0 && gameTurns[0].player === 'X') {
+    currentPlayer = 'O';
+  }
+  return currentPlayer;
+}
+
+function deriveWinner(gameBoard, players) {
   let winner = null;
 
   for (const combination of WINNING_COMBINATIONS) {
@@ -51,9 +56,24 @@ function App() {
     const thirdSquareSymbol = gameBoard[combination[2].row][combination[2].column];
 
     if (firstSquareSymbol && firstSquareSymbol === secondSquareSymbol && firstSquareSymbol === thirdSquareSymbol) {
-      winner = firstSquareSymbol;
+      winner = players[firstSquareSymbol];
     }
   }
+
+  return winner;
+}
+
+function App() {
+  const [players, setPlayers] = useState(PLAYERS);
+  const [ gameTurns, setGameTurns ] = useState([]);
+  // THis state is unnecessary - can derive from game turns
+  //const [ activePlayer, setActivePlayer ] = useState('X');
+
+  const activePlayer = deriveActivePlayer(gameTurns);
+
+  const gameBoard = deriveGameBoard(gameTurns);
+
+  const winner = deriveWinner(gameBoard, players);
 
   const hasDraw = gameTurns.length === 9 && !winner;
 
@@ -75,22 +95,42 @@ function App() {
     });
   }
 
+  function handleRestart() {
+    setGameTurns([]);
+  }
+
+  function handlePlayerNameChange(symbol, newName) {
+    setPlayers(oldPlayers => {
+      return {
+        // add the old players data for anything that is not changing
+        ...oldPlayers,
+        // dynamically set a property name with the [] syntax
+        // add the new name for the specified symbol
+        [symbol]: newName
+      }
+    })
+  }
+
   return (
     <main>
       <div id="game-container">
         <ol id="players" className="highlight-player">
           <Player
-            initialName="Player 1"
+            initialName={PLAYERS['X']}
             symbol="X" 
+            // Derived state
             isActive={activePlayer === 'X'}
+            onChangeName={handlePlayerNameChange}
           />
           <Player
-            initialName="Player 2"
+            initialName={PLAYERS['O']}
             symbol="O"
+            // Derived State
             isActive={activePlayer === 'O'}
+            onChangeName={handlePlayerNameChange}
           />  
         </ol>
-        {(winner || hasDraw) && <GameOver winner={winner}/>}
+        {(winner || hasDraw) && <GameOver winner={winner} onRestart={handleRestart}/>}
         <GameBoard 
           onSelectSquare={handleSelectSquare} 
           board={gameBoard}
