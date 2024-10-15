@@ -12,11 +12,14 @@ function App() {
     duration: 10
   });
 
+  const inputIsValid = inputs.duration >= 1;
+
   function handleUserInput(inputType, newValue) {
     setInputs(oldInputs => {
         return {
             ...oldInputs,
-            [inputType]: newValue
+            // Adding the "+" forces the conversion to a number
+            [inputType]: +newValue
         };
     });
   }
@@ -25,7 +28,8 @@ function App() {
     <>
       <Header />
       <UserInput inputs={inputs} handleUserInput={handleUserInput}/>
-      <Results />
+      { inputIsValid ? <Results inputs={inputs} /> :
+                       <p className="center">Please enter a duration greater than zero.</p>}
     </>
   )
 }
