@@ -6,7 +6,7 @@ export default function Player() {
 
     function handleClick() {
         setPlayerName(nameInput.current.value);
-        // This breaks some ideas of React by directly updating the DOM, but in this case
+        // This breaks some ideas of React by directly updating the DOM, but in this case its a small thing that can be done
         playerName.current.value = "";
     }
 
