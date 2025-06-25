@@ -54,7 +54,7 @@ export default function AuthInputs() {
         <button type="button" className="text-amber-400 hover:text-amber-500">
           Create a new account
         </button>
-        <Button onClick={handleLogin}>Sign In</Button>
+        <Button onClick={handleLogin} type="button">Sign In</Button>
       </div>
     </div>
   );
